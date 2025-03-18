@@ -41,8 +41,4 @@ Pastikan Anda telah menyiapkan hal-hal berikut sebelum memulai:
 - **Module not found"**: Instal library yang hilang dengan `pip install nama_library`.
 - Jika ada error saat menjalankan kode, periksa dokumentasi di repository atau hubungi pemilik repository.
 
-## Tentang Repository
-
-Repository ini (`https://github.com/zulvanavito/pcd.git`) dibuat oleh [zulvanavito](https://github.com/zulvanavito) dan berfokus pada pemrosesan citra digital (PCD). Silakan eksplorasi kode untuk belajar atau berkontribusi!
-
 Happy coding! 🚀
