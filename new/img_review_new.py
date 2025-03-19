@@ -2,7 +2,7 @@
 import PySimpleGUI as sg  # Modul untuk membuat antarmuka grafis (GUI)
 import os.path  # Modul untuk manipulasi path file dan direktori
 from PIL import Image, ImageOps  # Modul PIL untuk memproses gambar
-from processing_list import ImgNegative, ImgRotate, ImgBrightness, ImgBlending, ImgLogarithmic, ImgPowerLaw  # Impor fungsi pengolahan gambar dari file processing_list.py
+from processing_list_new import ImgNegative, ImgRotate, ImgBrightness, ImgBlending, ImgLogarithmic, ImgPowerLaw  # Impor fungsi pengolahan gambar dari file processing_list.py
 
 # --- Definisi Layout Antarmuka --- #
 
@@ -24,21 +24,28 @@ image_viewer_column = [
     [sg.Image(key="ImgInputViewer")],  # Komponen untuk menampilkan gambar input secara visual
 ]
 
-# Kolom Area No 3: Area informasi gambar dan daftar tombol pengolahan
-# Kolom Area No 3: Area informasi gambar dan daftar tombol pengolahan
+# Ganti bagian list_processing di file pertama:
 list_processing = [
-    [sg.Text("Image Information:")],  # Label untuk bagian informasi gambar
-    [sg.Text(size=(20, 1), key="ImgSize")],  # Teks untuk menampilkan ukuran gambar
-    [sg.Text(size=(20, 1), key="ImgColorDepth")],  # Teks untuk menampilkan kedalaman warna
-    [sg.Text("List of Processing:")],  # Label untuk daftar tombol pengolahan gambar
-    [sg.Button("Image Negative", size=(20, 1), key="ImgNegative")],  # Tombol negatif
-    [sg.Button("Image Rotate", size=(20, 1), key="ImgRotate")],  # Tombol rotasi
-    [sg.Button("Brightness", size=(20, 1), key="ImgBrightness")],  # Tombol kecerahan
-    [sg.Button("Blending", size=(20, 1), key="ImgBlending")],  # Tombol blending
-    [sg.Button("Logarithmic", size=(20, 1), key="ImgLogarithmic")],  # Tombol logaritmik
-    [sg.Text("Logarithmic Constant (c):")],  # Label untuk slider konstanta c
-    [sg.Slider(range=(1, 100), default_value=30, size=(20, 15), orientation='horizontal', key="LogC", enable_events=True)],  # Slider untuk c
-    [sg.Button("Power Law", size=(20, 1), key="ImgPowerLaw")],  # Tombol power-law
+    [sg.Text("Image Information:")],
+    [sg.Text(size=(20, 1), key="ImgSize")],
+    [sg.Text(size=(20, 1), key="ImgColorDepth")],
+    [sg.Text("List of Processing:")],
+    [sg.Button("Image Negative", size=(20, 1), key="ImgNegative")],
+    [sg.Text("Rotate (degrees):")],
+    # Tambahkan tombol untuk setiap sudut rotasi
+    [sg.Button("0°", size=(5, 1), key="Rotate0"),
+     sg.Button("45°", size=(5, 1), key="Rotate45"),
+     sg.Button("90°", size=(5, 1), key="Rotate90")],
+    [sg.Button("135°", size=(5, 1), key="Rotate135"),
+     sg.Button("180°", size=(5, 1), key="Rotate180"),
+     sg.Button("225°", size=(5, 1), key="Rotate225")],
+    [sg.Button("270°", size=(5, 1), key="Rotate270"),
+     sg.Button("315°", size=(5, 1), key="Rotate315"),
+     sg.Button("360°", size=(5, 1), key="Rotate360")],
+    [sg.Button("Brightness", size=(20, 1), key="ImgBrightness")],
+    [sg.Button("Blending", size=(20, 1), key="ImgBlending")],
+    [sg.Button("Logarithmic", size=(20, 1), key="ImgLogarithmic")],
+    [sg.Button("Power Law", size=(20, 1), key="ImgPowerLaw")],
 ]
 
 # Kolom Area No 4: Area untuk menampilkan hasil pengolahan gambar
@@ -164,15 +171,20 @@ while True:
         except Exception as e:
             print(f"Error memproses gambar negatif: {e}")  # Cetak pesan error jika gagal
     
-    # Event: Proses rotasi gambar
-    elif event == "ImgRotate" and img_input:
+    # Ganti event ImgRotate dengan blok berikut di dalam while loop:
+    # Event: Proses rotasi gambar untuk setiap sudut
+    elif event in ("Rotate0", "Rotate45", "Rotate90", "Rotate135", "Rotate180", 
+                   "Rotate225", "Rotate270", "Rotate315", "Rotate360") and img_input:
         try:
-            window["ImgProcessingType"].update("Image Rotate")  # Tampilkan jenis proses
-            img_output = ImgRotate(img_input, coldepth, 90, "C")  # Putar gambar 90 derajat searah jarum jam
-            img_output.save(filename_out)  # Simpan hasil
-            window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil
+            # Ambil sudut dari nama event (hapus "Rotate" dari string event)
+            degrees = int(event.replace("Rotate", ""))
+            window["ImgProcessingType"].update(f"Image Rotate {degrees}°")
+            # Rotasi selalu searah jarum jam (clockwise)
+            img_output = ImgRotate(img_input, coldepth, degrees, "C")
+            img_output.save(filename_out)
+            window["ImgOutputViewer"].update(filename=filename_out)
         except Exception as e:
-            print(f"Error memutar gambar: {e}")  # Cetak pesan error jika gagal
+            print(f" Personally memutar gambar: {e}")
     
     # Event: Proses penyesuaian kecerahan gambar
     elif event == "ImgBrightness" and img_input:
