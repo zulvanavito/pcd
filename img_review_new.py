@@ -25,17 +25,20 @@ image_viewer_column = [
 ]
 
 # Kolom Area No 3: Area informasi gambar dan daftar tombol pengolahan
+# Kolom Area No 3: Area informasi gambar dan daftar tombol pengolahan
 list_processing = [
     [sg.Text("Image Information:")],  # Label untuk bagian informasi gambar
-    [sg.Text(size=(20, 1), key="ImgSize")],  # Teks untuk menampilkan ukuran gambar (lebar x tinggi)
-    [sg.Text(size=(20, 1), key="ImgColorDepth")],  # Teks untuk menampilkan kedalaman warna gambar
+    [sg.Text(size=(20, 1), key="ImgSize")],  # Teks untuk menampilkan ukuran gambar
+    [sg.Text(size=(20, 1), key="ImgColorDepth")],  # Teks untuk menampilkan kedalaman warna
     [sg.Text("List of Processing:")],  # Label untuk daftar tombol pengolahan gambar
-    [sg.Button("Image Negative", size=(20, 1), key="ImgNegative")],  # Tombol untuk mengubah gambar menjadi negatif
-    [sg.Button("Image Rotate", size=(20, 1), key="ImgRotate")],  # Tombol untuk memutar gambar
-    [sg.Button("Brightness", size=(20, 1), key="ImgBrightness")],  # Tombol untuk menyesuaikan kecerahan
-    [sg.Button("Blending", size=(20, 1), key="ImgBlending")],  # Tombol untuk mencampur dua gambar
-    [sg.Button("Logarithmic", size=(20, 1), key="ImgLogarithmic")],  # Tombol untuk transformasi logaritmik
-    [sg.Button("Power Law", size=(20, 1), key="ImgPowerLaw")],  # Tombol untuk transformasi power-law (gamma correction)
+    [sg.Button("Image Negative", size=(20, 1), key="ImgNegative")],  # Tombol negatif
+    [sg.Button("Image Rotate", size=(20, 1), key="ImgRotate")],  # Tombol rotasi
+    [sg.Button("Brightness", size=(20, 1), key="ImgBrightness")],  # Tombol kecerahan
+    [sg.Button("Blending", size=(20, 1), key="ImgBlending")],  # Tombol blending
+    [sg.Button("Logarithmic", size=(20, 1), key="ImgLogarithmic")],  # Tombol logaritmik
+    [sg.Text("Logarithmic Constant (c):")],  # Label untuk slider konstanta c
+    [sg.Slider(range=(1, 100), default_value=30, size=(20, 15), orientation='horizontal', key="LogC", enable_events=True)],  # Slider untuk c
+    [sg.Button("Power Law", size=(20, 1), key="ImgPowerLaw")],  # Tombol power-law
 ]
 
 # Kolom Area No 4: Area untuk menampilkan hasil pengolahan gambar
@@ -204,13 +207,22 @@ while True:
     # Event: Proses transformasi logaritmik pada gambar
     elif event == "ImgLogarithmic" and img_input:
         try:
-            # Tampilkan popup untuk meminta konstanta c
-            c = sg.popup_get_text("Enter constant c for logarithmic:", default_text="30")
-            if c:  # Jika pengguna memasukkan nilai
-                window["ImgProcessingType"].update("Logarithmic")  # Tampilkan jenis proses
-                img_output = ImgLogarithmic(img_input, coldepth, float(c))  # Terapkan transformasi logaritmik
-                img_output.save(filename_out)  # Simpan hasil
-                window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil
+            c = values["LogC"]  # Ambil nilai konstanta c dari slider
+            window["ImgProcessingType"].update("Logarithmic")  # Tampilkan jenis proses
+            img_output = ImgLogarithmic(img_input, coldepth, float(c))  # Terapkan transformasi logaritmik
+            img_output.save(filename_out)  # Simpan hasil
+            window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil
+        except Exception as e:
+            print(f"Error transformasi logaritmik: {e}")  # Cetak pesan error jika gagal
+            
+            # Event: Ketika slider untuk konstanta c digeser
+    elif event == "LogC" and img_input:
+        try:
+            c = values["LogC"]  # Ambil nilai konstanta c dari slider
+            window["ImgProcessingType"].update("Logarithmic")  # Tampilkan jenis proses
+            img_output = ImgLogarithmic(img_input, coldepth, float(c))  # Terapkan transformasi logaritmik
+            img_output.save(filename_out)  # Simpan hasil
+            window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil
         except Exception as e:
             print(f"Error transformasi logaritmik: {e}")  # Cetak pesan error jika gagal
     
