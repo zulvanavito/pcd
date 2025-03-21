@@ -2,7 +2,7 @@
 import PySimpleGUI as sg  # Modul untuk membuat antarmuka grafis (GUI)
 import os.path  # Modul untuk manipulasi path file dan direktori
 from PIL import Image, ImageOps  # Modul PIL untuk memproses gambar
-from processing_list_new import ImgNegative, ImgRotate, ImgBrightness, ImgBlending, ImgLogarithmic, ImgPowerLaw  # Impor fungsi pengolahan gambar dari file processing_list.py
+from processing_list_new import * # Impor fungsi pengolahan gambar dari file processing_list.py
 
 # --- Definisi Layout Antarmuka --- #
 
@@ -24,7 +24,7 @@ image_viewer_column = [
     [sg.Image(key="ImgInputViewer")],  # Komponen untuk menampilkan gambar input secara visual
 ]
 
-# Ganti bagian list_processing di file pertama:
+# Kolom Area No 3: Area informasi gambar dan daftar tombol pengolahan
 list_processing = [
     [sg.Text("Image Information:")],
     [sg.Text(size=(20, 1), key="ImgSize")],
@@ -32,7 +32,6 @@ list_processing = [
     [sg.Text("List of Processing:")],
     [sg.Button("Image Negative", size=(20, 1), key="ImgNegative")],
     [sg.Text("Rotate (degrees):")],
-    # Tambahkan tombol untuk setiap sudut rotasi
     [sg.Button("0°", size=(5, 1), key="Rotate0"),
      sg.Button("45°", size=(5, 1), key="Rotate45"),
      sg.Button("90°", size=(5, 1), key="Rotate90")],
@@ -42,8 +41,14 @@ list_processing = [
     [sg.Button("270°", size=(5, 1), key="Rotate270"),
      sg.Button("315°", size=(5, 1), key="Rotate315"),
      sg.Button("360°", size=(5, 1), key="Rotate360")],
+    [sg.Text("Flip Image:")],
+    [sg.Button("Horizontal", size=(10, 1), key="FlipH"),
+     sg.Button("Vertical", size=(10, 1), key="FlipV"),
+     sg.Button("Both", size=(10, 1), key="FlipHV")],
     [sg.Button("Brightness", size=(20, 1), key="ImgBrightness")],
     [sg.Button("Blending", size=(20, 1), key="ImgBlending")],
+    [sg.Text("Logarithmic Constant (c):")],
+    [sg.Slider(range=(1, 100), default_value=30, orientation='h', size=(20, 15), key="LogC", enable_events=True)],
     [sg.Button("Logarithmic", size=(20, 1), key="ImgLogarithmic")],
     [sg.Button("Power Law", size=(20, 1), key="ImgPowerLaw")],
 ]
@@ -58,18 +63,18 @@ image_viewer_column2 = [
 # Menggabungkan semua kolom menjadi layout utama dengan pemisah vertikal
 layout = [
     [
-        sg.Column(file_list_column, background_color='pink'),  # Kolom pertama: pemilihan gambar
+        sg.Column(file_list_column),  # Kolom pertama: pemilihan gambar
         sg.VSeparator(),  # Pemisah vertikal antar kolom
-        sg.Column(image_viewer_column, background_color='pink'),  # Kolom kedua: tampilan gambar input
+        sg.Column(image_viewer_column),  # Kolom kedua: tampilan gambar input
         sg.VSeparator(),
-        sg.Column(list_processing, background_color='pink'),  # Kolom ketiga: informasi dan tombol
+        sg.Column(list_processing),  # Kolom ketiga: informasi dan tombol
         sg.VSeparator(),
-        sg.Column(image_viewer_column2, background_color='pink'),  # Kolom keempat: tampilan hasil
+        sg.Column(image_viewer_column2),  # Kolom keempat: tampilan hasil
     ]
 ]
 
 # Membuat jendela GUI dengan judul "Mini Image Editor" menggunakan layout yang telah didefinisikan
-window = sg.Window("Mini Image Editor", layout, background_color='pink')
+window = sg.Window("Mini Image Editor", layout)
 
 # --- Definisi Variabel dan Data Pendukung ---
 
@@ -171,7 +176,6 @@ while True:
         except Exception as e:
             print(f"Error memproses gambar negatif: {e}")  # Cetak pesan error jika gagal
     
-    # Ganti event ImgRotate dengan blok berikut di dalam while loop:
     # Event: Proses rotasi gambar untuk setiap sudut
     elif event in ("Rotate0", "Rotate45", "Rotate90", "Rotate135", "Rotate180", 
                    "Rotate225", "Rotate270", "Rotate315", "Rotate360") and img_input:
@@ -219,24 +223,26 @@ while True:
     # Event: Proses transformasi logaritmik pada gambar
     elif event == "ImgLogarithmic" and img_input:
         try:
-            c = values["LogC"]  # Ambil nilai konstanta c dari slider
-            window["ImgProcessingType"].update("Logarithmic")  # Tampilkan jenis proses
-            img_output = ImgLogarithmic(img_input, coldepth, float(c))  # Terapkan transformasi logaritmik
-            img_output.save(filename_out)  # Simpan hasil
-            window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil
+            c = values["LogC"]  # Ambil nilai dari slider
+            if c is None:  # Jika slider belum diatur
+                c = 30  # Gunakan nilai default
+            window["ImgProcessingType"].update("Logarithmic")
+            img_output = ImgLogarithmic(img_input, coldepth, float(c))
+            img_output.save(filename_out)
+            window["ImgOutputViewer"].update(filename=filename_out)
         except Exception as e:
-            print(f"Error transformasi logaritmik: {e}")  # Cetak pesan error jika gagal
-            
-            # Event: Ketika slider untuk konstanta c digeser
+            print(f"Error transformasi logaritmik: {e}")
+
+    # Event: Ketika slider untuk konstanta c digeser (opsional untuk pembaruan real-time)
     elif event == "LogC" and img_input:
         try:
-            c = values["LogC"]  # Ambil nilai konstanta c dari slider
-            window["ImgProcessingType"].update("Logarithmic")  # Tampilkan jenis proses
-            img_output = ImgLogarithmic(img_input, coldepth, float(c))  # Terapkan transformasi logaritmik
-            img_output.save(filename_out)  # Simpan hasil
-            window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil
+            c = values["LogC"]  # Ambil nilai dari slider
+            window["ImgProcessingType"].update("Logarithmic")
+            img_output = ImgLogarithmic(img_input, coldepth, float(c))
+            img_output.save(filename_out)
+            window["ImgOutputViewer"].update(filename=filename_out)
         except Exception as e:
-            print(f"Error transformasi logaritmik: {e}")  # Cetak pesan error jika gagal
+            print(f"Error transformasi logaritmik: {e}")
     
     # Event: Proses transformasi power-law (gamma correction)
     elif event == "ImgPowerLaw" and img_input:
@@ -251,5 +257,16 @@ while True:
         except Exception as e:
             print(f"Error transformasi power-law: {e}")  # Cetak pesan error jika gagal
 
+    # Event: Proses flip gambar
+    elif event in ("FlipH", "FlipV", "FlipHV") and img_input:
+        try:
+            flip_type = event.replace("Flip", "")  # Ambil jenis flip dari nama event (H, V, atau HV)
+            window["ImgProcessingType"].update(f"Flip {flip_type}")
+            img_output = ImgFlip(img_input, coldepth, flip_type)  # Panggil fungsi flip
+            img_output.save(filename_out)  # Simpan hasil ke file sementara
+            window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil di viewer
+        except Exception as e:
+            print(f"Error membalik gambar: {e}")
+            
 # Tutup jendela GUI setelah keluar dari loop
 window.close()

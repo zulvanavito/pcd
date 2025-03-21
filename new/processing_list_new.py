@@ -239,3 +239,42 @@ def ImgPowerLaw(img_input, coldepth, gamma):
         img_output = img_output.convert("RGB")  # Tetap di mode RGB (24-bit atau lebih)
     
     return img_output  # Kembalikan gambar hasil transformasi power-law
+
+# Fungsi untuk membalik (flip) gambar
+def ImgFlip(img_input, coldepth, flip_type):
+    """
+    Membalik gambar secara horizontal, vertikal, atau keduanya.
+    
+    Args:
+        img_input (PIL.Image): Objek gambar input yang akan dibalik.
+        coldepth (int): Kedalaman warna gambar (1 untuk biner, 8 untuk grayscale, 24/32 untuk RGB/RGBA).
+        flip_type (str): Jenis flip ('H' untuk horizontal, 'V' untuk vertikal, 'HV' untuk keduanya).
+    
+    Returns:
+        PIL.Image: Objek gambar output yang telah dibalik.
+    """
+    # Konversi gambar ke mode RGB jika bukan 24-bit untuk memudahkan manipulasi warna
+    if coldepth != 24:
+        img_input = img_input.convert('RGB')
+    
+    # Buat salinan gambar untuk diproses
+    img_output = img_input.copy()
+    
+    # Terapkan flip berdasarkan flip_type
+    if flip_type == "H":
+        img_output = ImageOps.mirror(img_output)  # Flip horizontal
+    elif flip_type == "V":
+        img_output = ImageOps.flip(img_output)  # Flip vertikal
+    elif flip_type == "HV":
+        img_output = ImageOps.mirror(img_output)  # Flip horizontal dulu
+        img_output = ImageOps.flip(img_output)   # Lalu flip vertikal
+    
+    # Konversi kembali ke mode asli berdasarkan kedalaman warna
+    if coldepth == 1:
+        img_output = img_output.convert("1")  # Konversi ke mode biner (1-bit)
+    elif coldepth == 8:
+        img_output = img_output.convert("L")  # Konversi ke mode grayscale (8-bit)
+    else:
+        img_output = img_output.convert("RGB")  # Tetap di mode RGB (24-bit atau lebih)
+    
+    return img_output  # Kembalikan gambar hasil flip
