@@ -38,15 +38,15 @@ def ImgNegative(img_input, coldepth):
     
     return img_output  # Kembalikan gambar hasil negatif
 
-def ImgRotate(img_input, coldepth, deg, direction):
+def ImgRotate(img_input, coldepth, deg):
     """
     Memutar gambar berdasarkan sudut tertentu (dalam derajat).
+    Sudut positif untuk clockwise, sudut negatif untuk counterclockwise.
     
     Args:
         img_input (PIL.Image): Objek gambar input yang akan diputar.
         coldepth (int): Kedalaman warna gambar (1, 8, atau 24/32).
-        deg (float): Derajat rotasi (nilai absolut).
-        direction (str): Arah rotasi ('C' untuk clockwise/searah jarum jam, 'CC' untuk counterclockwise).
+        deg (float): Derajat rotasi (positif untuk clockwise, negatif untuk counterclockwise).
     
     Returns:
         PIL.Image: Objek gambar output yang telah diputar.
@@ -54,7 +54,9 @@ def ImgRotate(img_input, coldepth, deg, direction):
     if coldepth != 24:
         img_input = img_input.convert('RGB')
     
-    rotation_angle = deg if direction == "C" else -deg
+    # Dalam PIL, rotate(deg) memutar counterclockwise untuk sudut positif
+    # Untuk clockwise, kita perlu sudut negatif
+    rotation_angle = -deg  # Balik sudut untuk membuat positif = clockwise
     img_output = img_input.rotate(rotation_angle, expand=True, fillcolor=(0, 0, 0))
     
     if coldepth == 1:
@@ -240,20 +242,8 @@ def ImgPowerLaw(img_input, coldepth, gamma):
     
     return img_output  # Kembalikan gambar hasil transformasi power-law
 
-# Fungsi untuk membalik (flip) gambar
 def ImgFlip(img_input, coldepth, flip_type):
-    """
-    Membalik gambar secara horizontal, vertikal, atau keduanya.
-    
-    Args:
-        img_input (PIL.Image): Objek gambar input yang akan dibalik.
-        coldepth (int): Kedalaman warna gambar (1 untuk biner, 8 untuk grayscale, 24/32 untuk RGB/RGBA).
-        flip_type (str): Jenis flip ('H' untuk horizontal, 'V' untuk vertikal, 'HV' untuk keduanya).
-    
-    Returns:
-        PIL.Image: Objek gambar output yang telah dibalik.
-    """
-    # Konversi gambar ke mode RGB jika bukan 24-bit untuk memudahkan manipulasi warna
+    # Konversi gambar ke mode RGB jika bukan 24-bit
     if coldepth != 24:
         img_input = img_input.convert('RGB')
     
@@ -266,15 +256,61 @@ def ImgFlip(img_input, coldepth, flip_type):
     elif flip_type == "V":
         img_output = ImageOps.flip(img_output)  # Flip vertikal
     elif flip_type == "HV":
-        img_output = ImageOps.mirror(img_output)  # Flip horizontal dulu
-        img_output = ImageOps.flip(img_output)   # Lalu flip vertikal
+        # Hanya flip vertikal dari gambar asli, tanpa horizontal
+        img_output = ImageOps.flip(img_input.copy())  # Gunakan img_input asli untuk flip vertikal
     
     # Konversi kembali ke mode asli berdasarkan kedalaman warna
     if coldepth == 1:
-        img_output = img_output.convert("1")  # Konversi ke mode biner (1-bit)
+        img_output = img_output.convert("1")
     elif coldepth == 8:
-        img_output = img_output.convert("L")  # Konversi ke mode grayscale (8-bit)
+        img_output = img_output.convert("L")
     else:
-        img_output = img_output.convert("RGB")  # Tetap di mode RGB (24-bit atau lebih)
+        img_output = img_output.convert("RGB")
     
-    return img_output  # Kembalikan gambar hasil flip
+    return img_output
+
+def ImgZoom(img_input, coldepth, factor, zoom_type):
+    """
+    Melakukan zoom in atau zoom out pada gambar dengan faktor tertentu.
+    
+    Args:
+        img_input (PIL.Image): Objek gambar input yang akan di-zoom.
+        coldepth (int): Kedalaman warna gambar (1, 8, atau 24/32).
+        factor (float): Faktor zoom (misalnya, 2 untuk 2x, 0.5 untuk 1/2x).
+        zoom_type (str): Jenis zoom ('in' untuk zoom in, 'out' untuk zoom out).
+    
+    Returns:
+        PIL.Image: Objek gambar output yang telah di-zoom.
+    """
+    if coldepth != 24:
+        img_input = img_input.convert('RGB')
+    
+    # Dapatkan ukuran asli gambar
+    original_width, original_height = img_input.size
+    
+    # Hitung ukuran baru berdasarkan faktor zoom
+    if zoom_type == "in":
+        new_width = int(original_width * factor)
+        new_height = int(original_height * factor)
+    elif zoom_type == "out":
+        new_width = int(original_width / factor)
+        new_height = int(original_height / factor)
+    else:
+        raise ValueError("zoom_type harus 'in' atau 'out'")
+    
+    # Pastikan ukuran baru tidak nol
+    new_width = max(1, new_width)
+    new_height = max(1, new_height)
+    
+    # Ubah ukuran gambar
+    img_output = img_input.resize((new_width, new_height), Image.Resampling.LANCZOS)
+    
+    # Konversi kembali ke mode asli berdasarkan kedalaman warna
+    if coldepth == 1:
+        img_output = img_output.convert("1")
+    elif coldepth == 8:
+        img_output = img_output.convert("L")
+    else:
+        img_output = img_output.convert("RGB")
+    
+    return img_output

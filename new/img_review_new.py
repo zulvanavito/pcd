@@ -19,38 +19,46 @@ file_list_column = [
 
 # Kolom Area No 2: Area untuk menampilkan gambar input pertama
 image_viewer_column = [
-    [sg.Text("Image Input:")],  # Label untuk area tampilan gambar input
-    [sg.Text(size=(40, 1), key="FilepathImgInput")],  # Teks untuk menampilkan path file gambar yang dipilih
-    [sg.Image(key="ImgInputViewer")],  # Komponen untuk menampilkan gambar input secara visual
+    [sg.Text("Image 1 Input (Primary):")],
+    [sg.Text(size=(40, 1), key="FilepathImgInput")],
+    [sg.Image(key="ImgInputViewer")],
+    [sg.Text(size=(20, 1), key="ImgSize1")],  # Informasi ukuran untuk gambar pertama
+    [sg.Text(size=(20, 1), key="ImgColorDepth1")],  # Informasi kedalaman warna untuk gambar pertama
 ]
 
-# Kolom Area No 3: Area informasi gambar dan daftar tombol pengolahan
+# Kolom Area No 2b: Area untuk menampilkan gambar input kedua
+image_viewer_column2_input = [
+    [sg.Text("Second Image Input for Blending (Optional):")],
+    [sg.Text(size=(40, 1), key="FilepathImgInput2")],
+    [sg.Image(key="ImgInputViewer2")],
+    [sg.Text(size=(20, 1), key="ImgSize2")],  # Informasi ukuran untuk gambar kedua
+    [sg.Text(size=(20, 1), key="ImgColorDepth2")],  # Informasi kedalaman warna untuk gambar kedua
+]
+
+# Kolom Area No 3: Area daftar tombol pengolahan
 list_processing = [
-    [sg.Text("Image Information:")],
-    [sg.Text(size=(20, 1), key="ImgSize")],
-    [sg.Text(size=(20, 1), key="ImgColorDepth")],
     [sg.Text("List of Processing:")],
-    [sg.Button("Image Negative", size=(20, 1), key="ImgNegative")],
+    [sg.Button("Image Negative", size=(37, 1), key="ImgNegative")],
     [sg.Text("Rotate (degrees):")],
-    [sg.Button("0°", size=(5, 1), key="Rotate0"),
-     sg.Button("45°", size=(5, 1), key="Rotate45"),
-     sg.Button("90°", size=(5, 1), key="Rotate90")],
-    [sg.Button("135°", size=(5, 1), key="Rotate135"),
-     sg.Button("180°", size=(5, 1), key="Rotate180"),
-     sg.Button("225°", size=(5, 1), key="Rotate225")],
-    [sg.Button("270°", size=(5, 1), key="Rotate270"),
-     sg.Button("315°", size=(5, 1), key="Rotate315"),
-     sg.Button("360°", size=(5, 1), key="Rotate360")],
+    [sg.Button("-90° (CCW)", size=(10, 1), key="Rotate-90"),
+     sg.Button("90° (CW)", size=(10, 1), key="Rotate90"),
+     sg.Button("180°", size=(10, 1), key="Rotate180")],
     [sg.Text("Flip Image:")],
     [sg.Button("Horizontal", size=(10, 1), key="FlipH"),
      sg.Button("Vertical", size=(10, 1), key="FlipV"),
      sg.Button("Both", size=(10, 1), key="FlipHV")],
-    [sg.Button("Brightness", size=(20, 1), key="ImgBrightness")],
-    [sg.Button("Blending", size=(20, 1), key="ImgBlending")],
+    [sg.Text("Zoom:")],
+    [sg.Combo(["2x", "3x", "4x"], default_value="2x", size=(22, 1), key="ZoomInFactor", enable_events=True),
+     sg.Button("Zoom In", size=(10, 1), key="ZoomIn")],
+    [sg.Combo(["2x", "3x", "4x"], default_value="2x", size=(22, 1), key="ZoomOutFactor", enable_events=True),
+     sg.Button("Zoom Out", size=(10, 1), key="ZoomOut")],
+    [sg.Button("Reset Zoom", size=(37, 1), key="ResetZoom")],
+    [sg.Button("Brightness", size=(37, 1), key="ImgBrightness")],
+    [sg.Button("Blending", size=(37, 1), key="ImgBlending")],
     [sg.Text("Logarithmic Constant (c):")],
-    [sg.Slider(range=(1, 100), default_value=30, orientation='h', size=(20, 15), key="LogC", enable_events=True)],
-    [sg.Button("Logarithmic", size=(20, 1), key="ImgLogarithmic")],
-    [sg.Button("Power Law", size=(20, 1), key="ImgPowerLaw")],
+    [sg.Slider(range=(1, 100), default_value=30, orientation='h', size=(33, 15), key="LogC", enable_events=True)],
+    [sg.Button("Logarithmic", size=(37, 1), key="ImgLogarithmic")],
+    [sg.Button("Power Law", size=(37, 1), key="ImgPowerLaw")],
 ]
 
 # Kolom Area No 4: Area untuk menampilkan hasil pengolahan gambar
@@ -65,7 +73,9 @@ layout = [
     [
         sg.Column(file_list_column),  # Kolom pertama: pemilihan gambar
         sg.VSeparator(),  # Pemisah vertikal antar kolom
-        sg.Column(image_viewer_column),  # Kolom kedua: tampilan gambar input
+        sg.Column(image_viewer_column),  # Kolom kedua: tampilan gambar input pertama
+        sg.VSeparator(),
+        sg.Column(image_viewer_column2_input),  # Kolom baru: tampilan gambar input kedua
         sg.VSeparator(),
         sg.Column(list_processing),  # Kolom ketiga: informasi dan tombol
         sg.VSeparator(),
@@ -140,31 +150,34 @@ while True:
     # Event: Ketika gambar pertama dipilih dari Listbox
     elif event == "ImgList" and values["ImgList"]:
         try:
-            # Gabungkan path folder dan nama file untuk mendapatkan path lengkap
             filename = os.path.join(values["ImgFolder"], values["ImgList"][0])
-            window["FilepathImgInput"].update(filename)  # Tampilkan path file di GUI
-            window["ImgInputViewer"].update(filename=filename)  # Tampilkan gambar di viewer
-            
-            # Buka gambar menggunakan PIL dan simpan ke variabel global
-            img_input = Image.open(filename)
-            img_width, img_height = img_input.size  # Dapatkan dimensi gambar
-            window["ImgSize"].update(f"Image Size: {img_width} x {img_height}")  # Tampilkan ukuran
-            coldepth = mode_to_coldepth.get(img_input.mode, 24)  # Ambil kedalaman warna, default 24 jika tidak dikenal
-            window["ImgColorDepth"].update(f"Color Depth: {coldepth}")  # Tampilkan kedalaman warna
-            window["ImgProcessingType"].update("Original Image")  # Set jenis proses ke "Original"
-            window["ImgOutputViewer"].update(filename=filename)  # Tampilkan gambar asli sebagai output awal
+            window["FilepathImgInput"].update(filename)
+            window["ImgInputViewer"].update(filename=filename)
         
+            img_input = Image.open(filename)
+            img_width, img_height = img_input.size
+            window["ImgSize1"].update(f"Image Size: {img_width} x {img_height}")  # Perbarui ukuran gambar 1
+            coldepth = mode_to_coldepth.get(img_input.mode, 24)
+            window["ImgColorDepth1"].update(f"Color Depth: {coldepth}")  # Perbarui kedalaman warna gambar 1
+            window["ImgProcessingType"].update("Original Image")
+            window["ImgOutputViewer"].update(filename=filename)
         except Exception as e:
-            print(f"Error membuka gambar: {e}")  # Cetak pesan error jika gagal
+            print(f"Error membuka gambar: {e}")
     
     # Event: Ketika gambar kedua dipilih dari Listbox (untuk blending)
     elif event == "ImgList2" and values["ImgList2"]:
         try:
-            # Gabungkan path folder dan nama file untuk gambar kedua
             filename2 = os.path.join(values["ImgFolder2"], values["ImgList2"][0])
-            img_input2 = Image.open(filename2)  # Buka gambar kedua dan simpan ke variabel global
+            window["FilepathImgInput2"].update(filename2)
+            window["ImgInputViewer2"].update(filename=filename2)
+        
+            img_input2 = Image.open(filename2)
+            img_width2, img_height2 = img_input2.size
+            window["ImgSize2"].update(f"Image Size: {img_width2} x {img_height2}")  # Perbarui ukuran gambar 2
+            coldepth2 = mode_to_coldepth.get(img_input2.mode, 24)
+            window["ImgColorDepth2"].update(f"Color Depth: {coldepth2}")  # Perbarui kedalaman warna gambar 2
         except Exception as e:
-            print(f"Error membuka gambar kedua: {e}")  # Cetak pesan error jika gagal
+            print(f"Error membuka gambar kedua: {e}")
     
     # Event: Proses gambar menjadi negatif
     elif event == "ImgNegative" and img_input:
@@ -177,18 +190,18 @@ while True:
             print(f"Error memproses gambar negatif: {e}")  # Cetak pesan error jika gagal
     
     # Event: Proses rotasi gambar untuk setiap sudut
-    elif event in ("Rotate0", "Rotate45", "Rotate90", "Rotate135", "Rotate180", 
-                   "Rotate225", "Rotate270", "Rotate315", "Rotate360") and img_input:
+    elif event in ("Rotate-90", "Rotate90", "Rotate180") and img_input:
         try:
             # Ambil sudut dari nama event (hapus "Rotate" dari string event)
             degrees = int(event.replace("Rotate", ""))
-            window["ImgProcessingType"].update(f"Image Rotate {degrees}°")
-            # Rotasi selalu searah jarum jam (clockwise)
-            img_output = ImgRotate(img_input, coldepth, degrees, "C")
+            # Tentukan arah rotasi untuk teks
+            direction_text = "Counterclockwise" if degrees < 0 else "Clockwise" if degrees == 90 else ""
+            window["ImgProcessingType"].update(f"Image Rotate {abs(degrees)}° {direction_text}")
+            img_output = ImgRotate(img_input, coldepth, degrees)  # Gunakan sudut langsung
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
         except Exception as e:
-            print(f" Personally memutar gambar: {e}")
+            print(f"Error memutar gambar: {e}")
     
     # Event: Proses penyesuaian kecerahan gambar
     elif event == "ImgBrightness" and img_input:
@@ -267,6 +280,47 @@ while True:
             window["ImgOutputViewer"].update(filename=filename_out)  # Tampilkan hasil di viewer
         except Exception as e:
             print(f"Error membalik gambar: {e}")
+            
+    # Event: Proses zoom in
+    elif event == "ZoomIn" and img_input:
+        try:
+            factor = int(values["ZoomInFactor"].replace("x", ""))  # Ambil faktor dari dropdown (hapus "x")
+            window["ImgProcessingType"].update(f"Zoom In {factor}x")
+            img_output = ImgZoom(img_input, coldepth, factor, "in")
+            img_output.save(filename_out)
+            window["ImgOutputViewer"].update(filename=filename_out)
+            # Perbarui informasi ukuran gambar di viewer
+            new_width, new_height = img_output.size
+            window["ImgSize1"].update(f"Image Size: {new_width} x {new_height}")
+        except Exception as e:
+            print(f"Error zoom in: {e}")
+
+# Event: Proses zoom out
+    elif event == "ZoomOut" and img_input:
+        try:
+            factor = int(values["ZoomOutFactor"].replace("x", ""))  # Ambil faktor dari dropdown (hapus "x")
+            window["ImgProcessingType"].update(f"Zoom Out {factor}x")
+            img_output = ImgZoom(img_input, coldepth, factor, "out")
+            img_output.save(filename_out)
+            window["ImgOutputViewer"].update(filename=filename_out)
+            # Perbarui informasi ukuran gambar di viewer
+            new_width, new_height = img_output.size
+            window["ImgSize1"].update(f"Image Size: {new_width} x {new_height}")
+        except Exception as e:
+            print(f"Error zoom out: {e}")
+
+    # Event: Reset zoom
+    elif event == "ResetZoom" and img_input:
+        try:
+            window["ImgProcessingType"].update("Reset Zoom")
+            img_output = img_input.copy()  # Kembali ke gambar asli
+            img_output.save(filename_out)
+            window["ImgOutputViewer"].update(filename=filename_out)
+            # Perbarui informasi ukuran gambar di viewer
+            original_width, original_height = img_input.size
+            window["ImgSize1"].update(f"Image Size: {original_width} x {original_height}")
+        except Exception as e:
+            print(f"Error reset zoom: {e}")
             
 # Tutup jendela GUI setelah keluar dari loop
 window.close()
