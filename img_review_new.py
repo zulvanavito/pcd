@@ -55,14 +55,23 @@ list_processing = [
     [sg.Slider(range=(1, 100), default_value=30, orientation='h', size=(33, 15), key="LogC", enable_events=True)],
     [sg.Button("Logarithmic", size=(37, 1), key="ImgLogarithmic")],
     [sg.Button("Power Law", size=(37, 1), key="ImgPowerLaw")],
-    [sg.Button("Reset All Operations", size=(37, 1), key="ResetAllOperations")],  # Tombol baru
+    [sg.Button("Reset All Operations", size=(37, 1), key="ResetAllOperations")],
 ]
 
 image_viewer_ouput = [
     [sg.Text("Image Processing Output:")],
     [sg.Text(size=(40, 1), key="ImgProcessingType")],
     [sg.Text("Output File: out.png", size=(40, 1), key="FilepathImgOutput")],
-    [sg.Image(key="ImgOutputViewer", size=(300, 300))],
+    # Bungkus ImgOutputViewer dalam Column dengan scroll
+    [sg.Column(
+        [[sg.Image(key="ImgOutputViewer")]],  # Gambar output
+        size=(300, 300),  # Ukuran area tampilan
+        scrollable=True,  # Aktifkan scroll
+        vertical_scroll_only=False,  # Izinkan scroll vertikal dan horizontal
+        key="OutputColumn",  # Beri key untuk referensi
+        expand_x=True,
+        expand_y=True,
+    )],
     [sg.Text(size=(20, 1), key="ImgSizeOutput")],
     [sg.Text(size=(20, 1), key="ImgColorDepthOutput")],
     [sg.Text(size=(20, 1), key="ImgModeOutput")],
@@ -170,6 +179,8 @@ while True:
             window["ImgColorDepth1"].update(f"Color Depth: {coldepth}")
             window["ImgProcessingType"].update("Original Image")
             window["ImgOutputViewer"].update(filename=filename)
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, img_width), max(300, img_height)))
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {img_width} x {img_height}")
             window["ImgColorDepthOutput"].update(f"Color Depth: {coldepth}")
@@ -207,7 +218,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
-            window["ImgSize1"].update(f"Image Size: {new_width} x {new_height}")
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1, biarkan tetap menunjukkan ukuran gambar input
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -230,7 +243,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
-            window["ImgSize1"].update(f"Image Size: {new_width} x {new_height}")
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -252,6 +267,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -275,6 +293,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -285,7 +306,7 @@ while True:
             print(f"Error memutar gambar: {e}")
             sg.popup_error("Error", f"Error memutar gambar: {e}")
     
-    #禁止: # Event: Proses flip gambar
+    # Event: Proses flip gambar
     elif event in ("FlipH", "FlipV", "FlipHV") and img_input:
         try:
             flip_type = event.replace("Flip", "")
@@ -297,6 +318,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -320,6 +344,9 @@ while True:
                 img_output.save(filename_out)
                 window["ImgOutputViewer"].update(filename=filename_out)
                 new_width, new_height = img_output.size
+                # Perbarui ukuran Column berdasarkan ukuran gambar
+                window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+                # Jangan perbarui ImgSize1
                 window["FilepathImgOutput"].update("Output File: out.png")
                 window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
                 new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -346,6 +373,9 @@ while True:
                 img_output.save(filename_out)
                 window["ImgOutputViewer"].update(filename=filename_out)
                 new_width, new_height = img_output.size
+                # Perbarui ukuran Column berdasarkan ukuran gambar
+                window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+                # Jangan perbarui ImgSize1
                 window["FilepathImgOutput"].update("Output File: out.png")
                 window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
                 new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -370,6 +400,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -392,6 +425,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             new_width, new_height = img_output.size
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+            # Jangan perbarui ImgSize1
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -415,6 +451,9 @@ while True:
                 img_output.save(filename_out)
                 window["ImgOutputViewer"].update(filename=filename_out)
                 new_width, new_height = img_output.size
+                # Perbarui ukuran Column berdasarkan ukuran gambar
+                window["OutputColumn"].set_size((max(300, new_width), max(300, new_height)))
+                # Jangan perbarui ImgSize1
                 window["FilepathImgOutput"].update("Output File: out.png")
                 window["ImgSizeOutput"].update(f"Image Size: {new_width} x {new_height}")
                 new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
@@ -435,7 +474,9 @@ while True:
             img_output.save(filename_out)
             window["ImgOutputViewer"].update(filename=filename_out)
             original_width, original_height = img_input.size
-            window["ImgSize1"].update(f"Image Size: {original_width} x {original_height}")
+            # Perbarui ukuran Column berdasarkan ukuran gambar
+            window["OutputColumn"].set_size((max(300, original_width), max(300, original_height)))
+            # Jangan perbarui ImgSize1, sudah diatur saat gambar dipilih
             window["FilepathImgOutput"].update("Output File: out.png")
             window["ImgSizeOutput"].update(f"Image Size: {original_width} x {original_height}")
             new_coldepth = mode_to_coldepth.get(img_output.mode, 24)
